@@ -15,6 +15,8 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].primary[800],
         tabBarStyle: {
           height: scaleSize(64),
+          paddingBottom: scaleSize(8),
+          paddingTop: scaleSize(12),
         },
       }}
     >

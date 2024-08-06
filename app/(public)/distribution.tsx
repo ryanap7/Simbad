@@ -29,6 +29,7 @@ import { GlobalTheme } from "@/themes/Styles";
 import LoadingHelper from "@/utils/LoadingHelper";
 import NavigationServices from "@/utils/NavigationServices";
 import { scaleSize } from "@/utils/Normalize";
+import { formatRupiah } from "@/utils/StringUtils";
 import ToastHelper from "@/utils/ToastHelper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -63,7 +64,6 @@ const Distribution = () => {
   const [state, dispatch] = useReducer(distributionReducer, initialState);
 
   const [dataFetched, setDataFetched] = useState(false);
-  const [detail, setDetail] = useState(null);
   const [last, setLast] = useState<any>(null);
   const [isSelected, setIsSelected] = useState("");
 
@@ -150,7 +150,6 @@ const Distribution = () => {
       if (res.status === 200) {
         setDataFetched(true);
         setLast(last_distribution);
-        setDetail(recipient);
 
         const split = recipient.ktp_photo.split("public");
 
@@ -169,12 +168,21 @@ const Distribution = () => {
     } catch (error: any) {
       setDataFetched(true);
       setLast(null);
-      setDetail(null);
       setTimeout(() => {
         LoadingHelper.hide();
       }, 1000);
     }
   }, []);
+
+  const isFormComplete = useCallback(() => {
+    return (
+      state.recipient &&
+      state.date &&
+      state.total &&
+      state.idPhoto &&
+      state.distributionPhoto
+    );
+  }, [state]);
 
   const onSubmit = useCallback(async () => {
     LoadingHelper.show();
@@ -184,8 +192,8 @@ const Distribution = () => {
     formData.append("date", moment(state.date).format("DD-MM-YYYY"));
     formData.append("year", currentYear.toString());
     formData.append("stage", last?.stage ? last.stage + 1 : "1");
-    formData.append("amount", state.total);
-    formData.append("notes", state.description);
+    formData.append("amount", state.total.replace(/[^,\d]/g, ""));
+    formData.append("notes", state.description ?? "-");
 
     const createFile = (file: { name: string; type: string; uri: string }) => {
       return {
@@ -236,6 +244,11 @@ const Distribution = () => {
     }
   }, [state]);
 
+  const handleTotalChange = useCallback((text: string) => {
+    const formattedText = formatRupiah(text);
+    dispatch(setTotal(formattedText));
+  }, []);
+
   return (
     <SafeAreaView style={[GlobalTheme.full, { backgroundColor }]}>
       <View style={styles.page}>
@@ -266,7 +279,7 @@ const Distribution = () => {
             label="Jumlah"
             value={state.total}
             placeholder="Masukkan Jumlah"
-            onChangeText={(text) => dispatch(setTotal(text))}
+            onChangeText={handleTotalChange}
             keyboardType="number-pad"
           />
           <Gap height={16} />
@@ -295,7 +308,11 @@ const Distribution = () => {
             onChangeText={(text) => dispatch(setDescription(text))}
           />
           <Gap height={24} />
-          <Button text="Simpan" onPress={onSubmit} />
+          <Button
+            text="Simpan"
+            onPress={onSubmit}
+            disabled={!isFormComplete()}
+          />
           <Gap height={64} />
         </KeyboardAvoiding>
       </View>

@@ -2,25 +2,36 @@ import { Colors } from "@/themes/Colors";
 import { GlobalTheme } from "@/themes/Styles";
 import { scaleSize } from "@/utils/Normalize";
 import React from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  TouchableOpacityProps,
+} from "react-native";
 import Text from "./Text";
 
-type ButtonProps = {
+type ButtonProps = TouchableOpacityProps & {
   text: string;
   backgroundColor?: string;
-  onPress?: () => void;
 };
 
 const Button = ({
   text,
   backgroundColor = Colors.light.primary[500],
-  onPress,
+  ...rest
 }: ButtonProps) => {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      style={[styles.button, GlobalTheme.center, { backgroundColor }]}
-      onPress={onPress}
+      style={[
+        styles.button,
+        GlobalTheme.center,
+        {
+          backgroundColor: rest.disabled
+            ? Colors.light.neutral[500]
+            : backgroundColor,
+        },
+      ]}
+      {...rest}
     >
       <Text size="SM" lightColor={Colors.light.white}>
         {text}
